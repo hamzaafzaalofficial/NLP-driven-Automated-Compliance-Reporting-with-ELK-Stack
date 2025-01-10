@@ -1,7 +1,7 @@
 # ELK Stack for Log Management with NLP Integration and Automated Reporting
 
 ## Architecture Diagram
-*(attached)*
+*(See reference in image files attached)*
 
 ---
 
@@ -92,4 +92,84 @@ sudo systemctl start logstash
 sudo systemctl enable logstash
 sudo systemctl status logstash
 ```
+##### **Install Kibana**
+Create a Logstash configuration file `/etc/logstash/conf.d/syslog.conf`:
+```plaintext
+input {
+  file {
+    path => "/var/log/syslog"
+    start_position => "beginning"
+    sincedb_path => "/dev/null"
+  }
+}
+
+filter {
+  grok {
+    match => { "message" => "%{SYSLOGTIMESTAMP:syslog_timestamp} %{HOSTNAME:hostname} %{SYSLOGPROG:program}: %{GREEDYDATA:log_message}" }
+  }
+  date {
+    match => [ "syslog_timestamp", "MMM d HH:mm:ss" ]
+    timezone => "Etc/UTC"
+    target => "@timestamp"
+  }
+}
+
+output {
+  elasticsearch {
+    hosts => ["http://localhost:9200"]
+    index => "syslog-%{+YYYY.MM.dd}"
+  }
+}
+```
+
+Restart Logstash:
+```bash
+sudo systemctl restart logstash
+```
+
+---
+
+#### **3. Integrating NLP with Logstash**
+
+##### Generate Sample Logs:
+```bash
+# GDPR-related logs
+echo "User 12345 accessed sensitive data: PII (Personally Identifiable Information)" >> /var/log/syslog
+```
+
+##### Python NLP Script:
+Create `/usr/local/logstash_scripts/nlp_processor.py`:
+```python
+#!/usr/bin/env python3
+# Add your Python code here
+```
+
+##### Configure Logstash Pipeline:
+Edit `/etc/logstash/conf.d/compliance.conf`.
+
+Restart Logstash:
+```bash
+sudo systemctl restart logstash
+```
+
+---
+
+#### **4. Automating Reporting**
+
+Create `/usr/local/logstash_scripts/compliance_report.py`:
+```python
+#!/usr/bin/env python3
+# Add your Python code here
+```
+
+Run the script:
+```bash
+/var/lib/logstash/venv/bin/python3 /usr/local/logstash_scripts/compliance_report.py
+```
+
+---
+
+### Future Enhancements
+
+- Use a cron job to automate reporting.
 - Extend NLP processing with additional compliance rules.
