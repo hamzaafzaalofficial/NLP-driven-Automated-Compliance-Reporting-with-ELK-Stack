@@ -1,4 +1,7 @@
 # ELK Stack for Log Management with NLP Integration and Automated Reporting
+## Learn More
+For a detailed explanation of this project, check out my [LinkedIn article](https://www.linkedin.com/pulse/nlp-driven-automated-compliance-reporting-elk-stack-hamza-afzal-bi0me).
+
 
 ## Architecture Diagram
 *(See reference in image files attached)*
@@ -93,6 +96,33 @@ sudo systemctl enable logstash
 sudo systemctl status logstash
 ```
 ##### **Install Kibana**
+```bash
+sudo apt-get install kibana
+sudo chown -R kibana:kibana /etc/kibana
+sudo chown -R kibana:kibana /var/lib/kibana
+```
+
+Configure Kibana:
+- Edit `/etc/kibana/kibana.yml`
+
+Start the Kibana service:
+```bash
+sudo systemctl daemon-reload
+sudo systemctl start kibana
+sudo systemctl enable kibana
+sudo systemctl status kibana
+```
+
+Access Kibana at: `http://<ip_address>:5601`
+
+---
+
+#### **2. Parsing System Logs**
+
+Grant `logstash` user read access to `/var/log/syslog`:
+```bash
+usermod -a -G adm logstash
+```
 Create a Logstash configuration file `/etc/logstash/conf.d/syslog.conf`:
 ```plaintext
 input {
@@ -142,11 +172,14 @@ Create `/usr/local/logstash_scripts/nlp_processor.py`:
 ```python
 #!/usr/bin/env python3
 # Add your Python code here
+# see nlp-processor.py file attached
 ```
 
 ##### Configure Logstash Pipeline:
 Edit `/etc/logstash/conf.d/compliance.conf`.
-
+```python
+# see the compliance.conf file attached
+```
 Restart Logstash:
 ```bash
 sudo systemctl restart logstash
@@ -160,6 +193,7 @@ Create `/usr/local/logstash_scripts/compliance_report.py`:
 ```python
 #!/usr/bin/env python3
 # Add your Python code here
+# see the compliance_report.py attached
 ```
 
 Run the script:
